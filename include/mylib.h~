@@ -1,0 +1,76 @@
+#pragma once
+
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
+struct SDL_Color;
+
+struct MIX_Mixer;
+struct MIX_Audio;
+
+union SDL_Event;
+
+// core.cpp - Manage SDL Window
+void init_window(const char *title, int width, int height);
+void close_window(void);
+
+SDL_Window *get_window(void);
+SDL_Renderer *get_renderer(void);
+MIX_Mixer *get_mixer(void);
+
+bool window_should_close(void);
+int get_window_width(void);
+int get_window_height(void);
+int get_logical_width(void);
+int get_logical_height(void);
+
+void set_logical_size(int width, int height);
+void set_window_should_close(bool state);
+
+// audio.cpp - Handle audio
+MIX_Audio *load_sound(const char *filepath);
+
+void play_sound(MIX_Audio *sound);
+
+// graphics.cpp - Handle graphics
+SDL_Texture *load_texture(const char *filepath);
+SDL_Texture *load_texture_color_keyed(const char *filepath, SDL_Color color);
+
+void unload_texture(SDL_Texture *texture);
+
+void clear_screen(SDL_Color color);
+void display_screen(void);
+
+void draw_texture(SDL_Texture *texture, float x, float y);
+
+void draw_line(float start_x, float start_y, float end_x, float end_y, SDL_Color color);
+
+void draw_rectangle(float x, float y, float width, float height, SDL_Color color);
+
+void draw_rectangle_lines(float x, float y, float width, float height, SDL_Color color);
+
+// clock.cpp - Handle game time
+void init_clock(int fps);
+
+double get_frame_time(void);
+double get_target_frame_time(void);
+
+void tick_clock(void);
+void cap_fps(void);
+
+// callbacks.cpp - For handling game loops
+void run(void);
+
+void game_init(void);
+void game_close(void);
+
+void handle_events(SDL_Event event);
+void update(float dt);
+void draw(void);
+
+#define WHITE   (SDL_Color) {255, 255, 255, 255}
+#define BLACK   (SDL_Color) {0, 0, 0, 255}
+
+#define RED     (SDL_Color) {255, 0, 0, 255}
+#define BLUE    (SDL_Color) {0, 255, 0, 255}
+#define GREEN   (SDL_Color) {0, 0, 255, 255}

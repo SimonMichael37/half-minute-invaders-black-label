@@ -1,0 +1,61 @@
+#include <chrono>
+#include <thread>
+
+#include "mylib.h"
+
+static int TARGET_FPS = 0;
+static std::chrono::duration<double> TARGET_FRAME_TIME;
+
+static std::chrono::time_point<std::chrono::steady_clock> frame_start_time;
+static std::chrono::time_point<std::chrono::steady_clock> frame_end_time;
+static std::chrono::time_point<std::chrono::steady_clock> prev_frame_start_time;
+
+static std::chrono::duration<double> frame_time;
+
+void init_clock(int fps) {
+  if (fps <= 0) {
+    TARGET_FPS = 0;
+    TARGET_FRAME_TIME = std::chrono::duration<double>(0.25);
+  } else {
+    TARGET_FPS = fps;
+    TARGET_FRAME_TIME = std::chrono::duration<double>( 1.0 / static_cast<double>(fps) );
+  }
+
+  prev_frame_start_time = std::chrono::steady_clock::now();
+}
+
+/* ------ Line Break ------ */
+
+double get_frame_time(void) {
+  return frame_time.count();
+}
+
+double get_target_frame_time(void) {
+  return TARGET_FRAME_TIME.count();
+}
+
+/* ------ Line Break ------ */
+
+void tick_clock(void) {
+  frame_start_time = std::chrono::steady_clock::now();
+  frame_time = frame_start_time - prev_frame_start_time;
+  prev_frame_start_time = frame_start_time;
+}
+
+void cap_fps(void) {
+  if (TARGET_FPS = 0) {
+    return;
+  }
+
+  frame_end_time = std::chrono::steady_clock::now();
+  auto frame_duration = frame_end_time - frame_start_time;
+
+  if (frame_duration < TARGET_FRAME_TIME) {
+    auto sleep_duration = TARGET_FRAME_TIME - frame_duration;
+
+    std::this_thread::sleep_for(
+      std::chrono::duration_cast<std::chrono::microseconds>(sleep_duration)
+    );
+  }
+}
+

@@ -1,0 +1,161 @@
+#include <iostream>
+
+#include "mylib.h"
+
+#include "SDL3/SDL.h"
+#include "SDL3_ttf/SDL_ttf.h"
+
+#include "invaders/player.h"
+#include "invaders/enemy.h"
+
+#include "game.h"
+#include "states.h"
+
+Player player;
+Bullet bullet;
+EnemyManager enemy_manager;
+ExplosionManager explosion_manager;
+
+SDL_Texture *score_text = NULL;
+SDL_Texture *duration_text = NULL;
+
+void update_score_text(int new_score) {
+  char buffer[8];
+
+  snprintf(buffer, sizeof(buffer), "%02d", new_score);
+  
+  unload_texture(score_text);
+
+  SDL_Surface *tmp_surface = NULL;
+  tmp_surface = TTF_RenderText_Solid(label_font, buffer, 0, NOKIA_LIGHT);
+  score_text = SDL_CreateTextureFromSurface(get_renderer(), tmp_surface);
+  
+  SDL_DestroySurface(tmp_surface);
+}
+
+void update_duration_text(int new_duration) {
+  char buffer[8];
+
+  snprintf(buffer, sizeof(buffer), "%02d", new_duration);
+  
+  unload_texture(duration_text);
+
+  SDL_Surface *tmp_surface = NULL;
+  tmp_surface = TTF_RenderText_Solid(label_font, buffer, 0, NOKIA_LIGHT);
+  duration_text = SDL_CreateTextureFromSurface(get_renderer(), tmp_surface);
+  
+  SDL_DestroySurface(tmp_surface);
+}
+
+void gameplay_init(void) {
+  player.init();
+  bullet.init();
+  enemy_manager.init();
+  explosion_manager.init();
+
+  SDL_Surface *tmp_surface = NULL;
+
+  tmp_surface = TTF_RenderText_Solid(label_font, "00", 0, NOKIA_LIGHT);
+  score_text = SDL_CreateTextureFromSurface(get_renderer(), tmp_surface);
+  SDL_DestroySurface(tmp_surface);
+
+  tmp_surface = TTF_RenderText_Solid(label_font, "00", 0, NOKIA_LIGHT);
+  duration_text = SDL_CreateTextureFromSurface(get_renderer(), tmp_surface);
+  SDL_DestroySurface(tmp_surface);
+}
+
+void gameplay_deinit(void) {
+	unload_texture(score_text);
+	unload_texture(duration_text);
+}
+
+bool gameplay_update(float dt) {
+  int input_x = right_key - left_key;
+
+  if (bullet.out_of_bounds() && shoot_key && !shoot_key_held) {
+		play_sound(laser_sound);
+    bullet.shoot(player.x, player.y);
+    shoot_key_held = true;
+  }
+
+  for (int i = 0; i < ENEMY_NUM; i++) {
+    SDL_FRect hitbox = enemy_manager.enemies[i].hitbox;
+
+    if ( SDL_HasRectIntersectionFloat(&hitbox, &(bullet.hitbox)) ) {
+      bullet.reset();
+      explosion_manager.spawn(enemy_manager.enemies[i].x, enemy_manager.enemies[i].y);
+      enemy_manager.enemies[i].reset();
+			play_sound(enemy_hit_sound);
+
+      score += 1;
+      update_score_text(score);
+    }
+
+    if ( SDL_HasRectIntersectionFloat(&hitbox, &(player.hitbox)) ) {
+      player.reset();
+      bullet.reset();
+      enemy_manager.reset();
+      explosion_manager.reset();
+
+			play_sound(player_hit_sound);
+
+			end_setup(score, true);
+			
+      return true;
+    }
+  }
+
+  duration_timer += dt;
+  if (duration_timer > DURATION_TIME) {
+    duration_left -= 1;
+    duration_timer = 0.0f;
+    update_duration_text(duration_left);
+  }
+
+  if (duration_left <= 0) {
+    player.reset();
+    bullet.reset();
+    enemy_manager.reset();
+		explosion_manager.reset();
+
+		play_sound(victory_jingle);
+
+		end_setup(score, false);
+
+    return true;
+  }
+
+  player.move(input_x, dt);
+
+  if ( !bullet.out_of_bounds() )
+    bullet.move(dt);
+
+  enemy_manager.update(dt);
+  explosion_manager.update(dt);
+
+  return false;
+}
+
+void gameplay_draw(void) {
+  if ( !bullet.out_of_bounds() )
+    draw_texture(bullet_texture, bullet.x - 1.0f, bullet.y - 4.0f);
+
+  draw_texture(player_texture, player.x - 4.0f, player.y - 4.0f);
+
+  for (int i = 0; i < ENEMY_NUM; i++) {
+    if ( !(enemy_manager.enemies[i].out_of_bounds()) ) {
+      draw_texture(enemy_texture, enemy_manager.enemies[i].x - 5.0f, enemy_manager.enemies[i].y - 4.0f);
+    }
+  }
+ 
+  for (int j = 0; j < EXPLOSION_NUM; j++) {
+    if ( !(explosion_manager.explosions[j].out_of_bounds()) ) {
+      draw_texture(explosion_texture, explosion_manager.explosions[j].x - 2.0f, explosion_manager.explosions[j].y - 2.0f);
+    }
+  }
+
+	draw_line(0.0f, 13.0f, 128.0f, 13.0f, NOKIA_LIGHT);
+	draw_rectangle(0.0f, 0.0f, 128.0f, 13.0f, NOKIA_DARK);
+	draw_texture(score_text, 52.0f, 4.0f);
+  draw_texture(duration_text, 70.0f, 4.0f);
+}

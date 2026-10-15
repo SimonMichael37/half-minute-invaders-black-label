@@ -1,0 +1,162 @@
+#include <cstdlib>
+#include <cmath>
+
+#include "SDL3/SDL.h"
+
+#include "invaders/enemy.h"
+
+static const float AMPLITUDE = 8.0f;
+static const float FREQUENCY = 0.1f;
+
+void Enemy::init(void) {
+  this->x = 130.0f;
+  this->y = 130.0f;
+	this->base_x = 130.0f;
+
+  this->hitbox.w = 10.0f;
+  this->hitbox.h = 8.0f;
+  this->hitbox.x = this->x - 5.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+void Enemy::reset(void) {
+  this->x = 130.0f;
+  this->y = 130.0f;
+	this->base_x = 130.0f;
+
+  this->hitbox.x = this->x - 5.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+bool Enemy::out_of_bounds(void) {
+  return this->y > 128.0f;
+}
+
+void Enemy::spawn(float x, float y) {
+  this->x = x;
+  this->y = y;
+	this->base_x = x;
+
+  this->hitbox.x = this->x - 5.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+void Enemy::move(float dt) {
+  this->y += 50.0f * dt;
+
+	this->x = this->base_x + AMPLITUDE * std::sin(this->y * FREQUENCY);
+
+  this->hitbox.x = this->x - 5.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+/* ------ LINE BREAK ------ */
+
+void Explosion::init(void) {
+  this->x = -16.0f;
+  this->y = -16.0f;
+  this->lifetime = 0.0f;
+}
+
+void Explosion::reset(void) {
+  this->x = -16.0f;
+  this->y = -16.0f;
+  this->lifetime = 0.0f;
+}
+
+bool Explosion::out_of_bounds(void) {
+  return this->y < 0.0f;
+}
+
+void Explosion::update(float dt) {
+  this->lifetime -= dt;
+
+  if (this->lifetime <= 0.0f) {
+    this->reset();
+  }
+}
+
+void Explosion::spawn(float x, float y) {
+  this->x = x;
+  this->y = y;
+  this->lifetime = EXPLOSION_TIME;
+}
+
+/* ------ LINE BREAK ------ */
+/* ------ LINE BREAK ------ */
+/* ------ LINE BREAK ------ */
+
+const float SPAWN_TIME = 0.3f;
+float spawn_timer = 0.0f;
+
+void EnemyManager::init(void) {
+  for (int i = 0; i < ENEMY_NUM; i++) {
+    this->enemies[i].init();
+  }
+
+  spawn_timer = 0.0f;
+}
+
+void EnemyManager::reset(void) {
+  for (int i = 0; i < ENEMY_NUM; i++) {
+    this->enemies[i].reset();
+  }
+}
+
+void EnemyManager::spawn(void) {
+	// 14.0f
+
+  for (int i = 0; i < ENEMY_NUM; i++) {
+    if ( this->enemies[i].out_of_bounds() ) {
+      float rand_x = (float) ((rand() % 121) + 4);
+      this->enemies[i].spawn(rand_x, 10.0f);
+      break;
+    }
+  }
+}
+
+void EnemyManager::update(float dt) {
+  for (int i = 0; i < ENEMY_NUM; i++) {
+    if ( !(this->enemies[i].out_of_bounds()) ) {
+      this->enemies[i].move(dt);
+    }
+  }
+
+  spawn_timer += dt;
+  if (spawn_timer >= SPAWN_TIME) {
+    this->spawn();
+    spawn_timer = 0.0f;
+  }
+}
+
+/* ------ LINE BREAK ------ */
+
+void ExplosionManager::init(void) {
+  for (int i = 0; i < EXPLOSION_NUM; i++) {
+    this->explosions[i].init();
+  }
+}
+
+void ExplosionManager::reset(void) {
+  for (int i = 0; i < EXPLOSION_NUM; i++) {
+    this->explosions[i].reset();
+  }
+}
+
+void ExplosionManager::spawn(float x, float y) {
+  for (int i = 0; i < EXPLOSION_NUM; i++) {
+    if ( this->explosions[i].out_of_bounds() ) {
+      this->explosions[i].spawn(x, y);
+      break;
+    }
+  }
+}
+
+void ExplosionManager::update(float dt) {
+  for (int i = 0; i < EXPLOSION_NUM; i++) {
+    if ( !(this->explosions[i].out_of_bounds()) ) {
+      this->explosions[i].update(dt);
+    }
+  }
+}
+

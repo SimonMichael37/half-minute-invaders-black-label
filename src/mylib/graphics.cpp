@@ -1,0 +1,76 @@
+#include "mylib.h"
+
+#include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
+
+SDL_Texture *load_texture(const char *filepath) {
+  SDL_Texture *texture = IMG_LoadTexture(get_renderer(), filepath);
+
+  return texture;
+}
+
+SDL_Texture *load_texture_color_keyed(const char *filepath, SDL_Color color) {
+  SDL_Surface *surface = IMG_Load(filepath);
+  Uint32 color_key = SDL_MapSurfaceRGB(surface, color.r, color.g, color.b);
+  SDL_SetSurfaceColorKey(surface, true, color_key);
+
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(get_renderer(), surface);
+  SDL_DestroySurface(surface);
+
+  return texture;
+}
+
+/* ------ Line Break ------ */
+
+void unload_texture(SDL_Texture *texture) {
+  SDL_DestroyTexture(texture);
+}
+
+/* ------ Line Break ------ */
+
+void clear_screen(SDL_Color color) {
+  SDL_SetRenderDrawColor(get_renderer(), color.r, color.g, color.b, color.a);
+  SDL_RenderClear(get_renderer());
+}
+
+void display_screen(void) {
+  SDL_RenderPresent(get_renderer());
+}
+
+/* ------ Line Break ------ */
+
+void draw_texture(SDL_Texture *texture, float x, float y) {
+  float width, height = 0.0f;
+  SDL_GetTextureSize(texture, &width, &height);
+
+  SDL_FRect dst_rect = {
+    .x = x,
+    .y = y,
+    .w = width,
+    .h = height
+  };
+  SDL_RenderTexture(get_renderer(), texture, NULL, &dst_rect);
+}
+
+/* ------ Line Break ------ */
+
+void draw_line(float start_x, float start_y, float end_x, float end_y, SDL_Color color) {
+	SDL_SetRenderDrawColor(get_renderer(), color.r, color.g, color.g, color.a);
+  SDL_RenderLine(get_renderer(), start_x, start_y, end_x, end_y);
+}
+
+/* ------ Line Break ------ */
+
+void draw_rectangle(float x, float y, float width, float height, SDL_Color color) {
+	SDL_SetRenderDrawColor(get_renderer(), color.r, color.g, color.b, color.a);
+	SDL_FRect rect = {x, y, width, height};
+	SDL_RenderFillRect(get_renderer(), &rect);
+}
+
+/* ------ Line Break ------ */
+
+void draw_rectangle_lines(float x, float y, float width, float height, SDL_Color color) {
+  SDL_SetRenderDrawColor(get_renderer(), color.r, color.g, color.g, color.a);
+  SDL_FRect rect = {x, y, width, height};
+  SDL_RenderRect(get_renderer(), &rect);
+}

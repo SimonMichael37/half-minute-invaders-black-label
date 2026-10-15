@@ -1,0 +1,73 @@
+#include "SDL3/SDL.h"
+
+#include "invaders/player.h"
+
+void Player::init(void) {
+  this->x = 64.0f;
+  this->y = 112.0f;
+
+  this->hitbox.w = 6.0f;
+  this->hitbox.h = 3.0f;
+  this->hitbox.x = this->x - 3.0f;
+  this->hitbox.y = this->y + 1.0f;
+}
+
+void Player::reset(void) {
+  this->x = 64.0f;
+  this->y = 112.0f;
+
+  this->hitbox.x = this->x - 3.0f;
+  this->hitbox.y = this->y + 1.0f;
+}
+
+void Player::move(int move_x, float dt) {
+  this->x += move_x * 50.0f * dt;
+
+  if (this->x < 4.0f) {
+    this->x = 4.0f;
+  } else if (this->x > 124.0f) {
+    this->x = 124.0f;
+  }
+
+  this->hitbox.x = this->x - 3.0f;
+  this->hitbox.y = this->y + 1.0f;
+}
+
+/* ------ LINE BREAK ------ */
+
+void Bullet::init(void) {
+  this->x = -8.0f;
+  this->y = -8.0f;
+
+  this->hitbox.w = 2.0f;
+  this->hitbox.h = 8.0f;
+  this->hitbox.x = this->x - 1.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+void Bullet::reset(void) {
+  this->x = -8.0f;
+  this->y = -8.0f;
+
+  this->hitbox.x = this->x - 1.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+void Bullet::shoot(float x, float y) {
+  this->x = x;
+  this->y = y;
+
+  this->hitbox.x = this->x - 1.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+void Bullet::move(float dt) {
+  this->y -= 200.0f * dt;
+
+  this->hitbox.x = this->x - 1.0f;
+  this->hitbox.y = this->y - 4.0f;
+}
+
+bool Bullet::out_of_bounds(void) {
+  return this->y < 14.0f;
+}

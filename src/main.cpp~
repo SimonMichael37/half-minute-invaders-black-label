@@ -1,0 +1,15 @@
+#include "mylib.h"
+
+#include "SDL3/SDL.h"
+
+int main(int argc, char **argv) {
+  game_init();
+
+  while (true) {
+    run();
+  }
+
+  game_close();
+
+  return 0;
+}

@@ -1,0 +1,52 @@
+#pragma once
+
+#define ENEMY_NUM 20
+
+#define EXPLOSION_NUM 20
+#define EXPLOSION_TIME 0.2
+
+struct SDL_FRect;
+
+struct Enemy {
+  float x;
+  float y;
+  SDL_FRect hitbox;
+
+  void init(void);
+  void reset(void);
+  bool out_of_bounds(void);
+  void spawn(float x, float y);
+  void move(float dt);
+};
+
+struct Explosion {
+  float x;
+  float y;
+  float lifetime;
+
+  void init(void);
+  void reset(void);
+  bool out_of_bounds(void);
+  void update(float dt);
+  void spawn(float x, float y);
+};
+
+/* ------ Line Break ------ */
+
+struct EnemyManager {
+  Enemy enemies[ENEMY_NUM];
+
+  void init(void);
+  void reset(void);
+  void spawn(void);
+  void update(float dt);
+};
+
+struct ExplosionManager {
+  Explosion explosions[EXPLOSION_NUM];
+
+  void init(void);
+  void reset(void);
+  void spawn(float x, float y);
+  void update(float dt);
+};
